@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+
+# Personal config, secrets, and runtime logs (NEVER commit!)
+.env
+.env.*
+config.json
+local.config.json
+*.log
+logs/
+state.json
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
