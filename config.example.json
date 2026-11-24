@@ -1,0 +1,36 @@
+{
+  "github_user": "your-github-username",
+  "schedule_time": "15:00:00",
+  "skip_if_already_committed_today": true,
+  "max_repos_to_audit": 5,
+  "agy_bin": "agy",
+  "preferred_models": [
+    "gemini-4-neon-medium",
+    "gemini-3.8-flash-high",
+    "claude-sonnet-5-5-medium"
+  ],
+  "agy_timeout_seconds": 600,
+  "protected_pr_only_patterns": [
+    "research-",
+    "thesis-",
+    "competition-"
+  ],
+  "hosts": [
+    {
+      "name": "edge-pi",
+      "mode": "local",
+      "scan_roots": ["~"],
+      "max_depth": 2
+    },
+    {
+      "name": "workstation",
+      "mode": "ssh",
+      "ssh_target": "laptop",
+      "wake_command": "wake-laptop",
+      "scan_roots": ["~/projects"],
+      "max_depth": 2
+    }
+  ],
+  "notify_desktop": true,
+  "notify_command": ""
+}
