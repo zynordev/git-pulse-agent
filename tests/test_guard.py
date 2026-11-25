@@ -26,6 +26,21 @@ class TestGuard(unittest.TestCase):
             self.assertIn("sensitive_filename", rules)
             self.assertIn("notion_token", rules)
 
+    def test_secret_scanner_ignores_ancestor_skip_dirs_but_prunes_child_skip_dirs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            # Project located under an ancestor directory named "build" (in SKIP_DIRS)
+            project_root = Path(tmp) / "build" / "my-app"
+            project_root.mkdir(parents=True)
+            (project_root / ".env").write_text("SECRET=1\n", encoding="utf-8")
+
+            # Child skip directory inside the project should still be ignored
+            ignored_child = project_root / "node_modules" / "pkg"
+            ignored_child.mkdir(parents=True)
+            (ignored_child / "credentials.json").write_text("{}\n", encoding="utf-8")
+
+            findings = scan_directory_for_secrets(project_root)
+            self.assertEqual(findings, [{"file": ".env", "rule": "sensitive_filename"}])
+
 
 if __name__ == "__main__":
     unittest.main()

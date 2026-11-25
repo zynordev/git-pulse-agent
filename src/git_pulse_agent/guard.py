@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import fnmatch
+import os
 import re
 from pathlib import Path
 from typing import Iterable
@@ -61,28 +62,30 @@ def scan_directory_for_secrets(
     if not root.is_dir():
         return findings
 
-    for path in root.rglob("*"):
-        if any(part in SKIP_DIRS for part in path.parts):
-            continue
-        if not path.is_file():
-            continue
-
-        rel = str(path.relative_to(root))
-        if path.name.lower() in SENSITIVE_FILENAMES or path.suffix.lower() in (".pem", ".key", ".p12"):
-            findings.append({"file": rel, "rule": "sensitive_filename"})
-            continue
-
-        try:
-            if path.stat().st_size > max_file_bytes:
+    for current_root, dirs, files in os.walk(root):
+        dirs[:] = sorted(d for d in dirs if d not in SKIP_DIRS)
+        current_path = Path(current_root)
+        for fname in sorted(files):
+            path = current_path / fname
+            if not path.is_file():
                 continue
-            text = path.read_text(encoding="utf-8", errors="ignore")
-        except OSError:
-            continue
 
-        for rule_name, regex in SECRET_PATTERNS:
-            if regex.search(text):
-                findings.append({"file": rel, "rule": rule_name})
-                break
+            rel = str(path.relative_to(root))
+            if path.name.lower() in SENSITIVE_FILENAMES or path.suffix.lower() in (".pem", ".key", ".p12"):
+                findings.append({"file": rel, "rule": "sensitive_filename"})
+                continue
+
+            try:
+                if path.stat().st_size > max_file_bytes:
+                    continue
+                text = path.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                continue
+
+            for rule_name, regex in SECRET_PATTERNS:
+                if regex.search(text):
+                    findings.append({"file": rel, "rule": rule_name})
+                    break
 
     return findings
 
